@@ -3,9 +3,8 @@ import xarray as xr
 import glob
 import numpy as np
 
-def load_run(username=None, casename=None, runname=None, Nens=None):
+def load_ensemble_run(username=None, casename=None, runname=None, Nens=None):
     ''' Loads in cice run data and returns a dataset.'''
-    
     
     data_dir = os.path.join('/glade/scratch', username, casename, runname, 'run')
     ds_ens = []
@@ -19,5 +18,19 @@ def load_run(username=None, casename=None, runname=None, Nens=None):
             print(glob.glob(os.path.join(data_dir,runname+'.cice_0008.h.*.nc')))
             raise ValueError("Found no files")
     ds_ice = xr.concat(ds_ens, dim='ensemble')
+    
+    return ds_ice
+
+
+def load_single_run(username=None, runname=None, Nens=None):
+    ''' Loads in cice run data and returns a dataset.'''
+    
+    data_dir = os.path.join('/glade/scratch', username, runname, 'run')
+    all_files = sorted(glob.glob(os.path.join(data_dir,runname+'.cice*.nc')))
+    if all_files:
+        ds_ice = xr.open_mfdataset(all_files, autoclose=True, parallel=True, concat_dim='time')
+    else:
+        print(glob.glob(os.path.join(data_dir,runname+'.cice*.nc')))
+        raise ValueError("Found no files")
     
     return ds_ice
